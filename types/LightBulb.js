@@ -1,4 +1,5 @@
 var inherits = require('util').inherits;
+var pollingtoevent = require('polling-to-event');
 
 var Service, Characteristic;
 
@@ -26,16 +27,17 @@ function LoxoneLightbulb(config, platform, hap) {
 
     this.name = config.name;
     this.input = config.input;
-    this.output = config.output;
+    this.output = config.output || this.input;
     this.type = config.type || 'Switch';
+    this.pool = config.pool == "on";
 
     this._service = new Service.Lightbulb(this.name);
+
     this._service.getCharacteristic(Characteristic.On)
         .on('get', this._getValue.bind(this));
 
     this._service.getCharacteristic(Characteristic.On)
         .on('set', this._setValue.bind(this));
-
 
     if (this.type == 'Dimmer' || this.type == 'Dimmer-%') {
         this._service.getCharacteristic(Characteristic.Brightness)
@@ -43,8 +45,40 @@ function LoxoneLightbulb(config, platform, hap) {
 
         this._service.getCharacteristic(Characteristic.Brightness)
             .on('set', this._setBrightnessValue.bind(this));
-
     }
+
+    if (this.pool) {
+        var statusPoller = pollingtoevent(function(done) {
+            this._getValue(done);
+        }, {
+            longpolling: true,
+            interval: 1000,
+            longpollEventName: "statuspoll"
+        });
+
+        statusPoller.on("statuspoll", function(data) {
+            that._service
+              .getCharacteristic(Characteristic.On)
+              .setValue(data);
+        });
+
+        if (this.type == 'Dimmer' || this.type == 'Dimmer-%') {
+            var brightnessPoller = pollingtoevent(function(done) {
+                this._getBrightnessValue(done);
+            }, {
+                longpolling: true,
+                interval: 1000,
+                longpollEventName: "statuspoll"
+            });
+
+            brightnessPoller.on("statuspoll", function(data) {
+                that._service
+                  .getCharacteristic(Characteristic.Brightness)
+                  .setValue(data);
+            });
+        }
+    }
+
 }
 
 LoxoneLightbulb.prototype._getValue = function(callback) {

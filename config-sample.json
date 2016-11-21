@@ -19,32 +19,13 @@
 			"ip_address": "",
 			"username": "",
 			"password": "",
-			"TemperatureSensors":[
+			"LightBulb":[
 				{
-					"name": "Temperature kitchen",
-					"input": "AWI3"
-				}
-			],
-			"HumiditySensors":[
-				{
-					"name": "Humidity bathroom",
-					"input": "AI_SEN3-RH"
-				}
-			],
-			"AirQualitySensors":[
-				{
-					"name": "Air quality kitchen",
-					"input": "AI_SEN2-CO2"
-				}
-			],
-			"Outlets":[
-				{
-					"name": "Socket",
-					"input": "I_I6",
-					"output": "Q_I6"
+					"name": "Lumière Cuisine",
+					"output": "0ec71b64-01d0-6adb-ffff466463cd0ec2",
+					"type" : "Switch"
 				}
 			]
-
 		}
 	]
 }
